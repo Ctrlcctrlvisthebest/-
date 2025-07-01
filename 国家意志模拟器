@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌏 国家意志模拟器</title>
+  
+  <style>
+    /* 页面整体样式 */
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #0d1b2a, #1b263b);
+      color: #e0e1dd;
+      padding: 10px;
+      margin: 0;
+    }
+    .container {
+      background: rgba(23, 32, 45, 0.95);
+      border-radius: 10px;
+      padding: 15px;
+      max-width: 420px;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    .panel {
+      background: rgba(31, 48, 68, 0.8);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+    }
+
+    .options label {
+      display: block;
+      background: rgba(31, 48, 68, 0.8);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      padding: 6px;
+      font-size: 0.8rem;
+    }
+      background: rgba(31, 48, 68, 0.8);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+    }
+    button {
+      background: #415a77;
+      color: white;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    button:hover { background: #778da9; }
+    .labor-summary { text-align: center; font-size: 0.85rem; color: #a9b6c2; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>🌏 国家意志模拟器</h2>
+  <div class="panel" id="statusPanel"></div>
+  <div class="panel" id="situationPanel"></div>
+  <div class="panel options" id="optionsPanel"></div>
+  <div class="labor-summary" id="laborSummary">已选择劳动力: 0</div>
+  <button id="submitBtn">✅ 执行勾选选项</button>
+  <div class="panel" id="chat"></div>
+</div>
+
+<script>
+// 状态数据定义
+const state = {
+  population: 60, tools: 20, food: 70, water: 80, morale: 85,
+  tech: 3, culture: 2, belief: '图腾祭祀', economy: 1,
+  org: '部落议会', form: '原始部落', season: 1, location: '森林边缘', starving: false
+};
+
+// 行动选项定义
+const actions = {
+  // 技术发展类
+  sharpStoneTools: { title: '🗿 原始工具改进', desc: '制作更锋利的石器，提升狩猎效率', labor: 10, exec(){state.tools+=10;} },
+  controlFire: { title: '🔥 火的控制', desc: '建立永久火源，提升食物保存和防御能力', labor: 15, exec(){state.food+=10; state.morale+=5;} },
+  weavingTech: { title: '🧺 编织技术', desc: '制作植物纤维容器，提高食物储存', labor: 8, exec(){state.food+=15;} },
+  primitiveAgriculture: { title: '🌾 原始农业', desc: '尝试种植谷物，开启农业技术', labor: 20, exec(){state.tech+=2; state.food+=20;} },
+  fishingTech: { title: '🎣 捕鱼技术', desc: '制作渔网，增加食物多样性', labor: 12, exec(){state.food+=25;} },
+
+  // 社会组织类
+  tribalDivision: { title: '👥 部落分工', desc: '分配小组，提高效率', labor: 10, exec(){state.tech+=1;} },
+  tribalCouncil: { title: '🏛️ 建立部落会议', desc: '形成决策机制', labor: 15, exec(){state.culture+=2;} },
+  hierarchySystem: { title: '🔺 长幼尊卑', desc: '建立等级制度', labor: 12, exec(){state.morale-=5; state.culture+=2;} },
+  marriageSystem: { title: '💑 婚姻制度', desc: '规范婚配关系，增加人口', labor: 8, exec(){state.population+=5;} },
+  tribalRituals: { title: '🎉 部落仪式', desc: '建立仪式，提高凝聚力', labor: 10, exec(){state.morale+=10; state.culture+=1;} },
+
+  // 资源管理类
+  foodStorage: { title: '🍖 食物储存', desc: '建造储藏室', labor: 15, exec(){state.food+=30;} },
+  waterProtection: { title: '💧 水源保护', desc: '保护水源，增加健康', labor: 12, exec(){state.morale+=5;} },
+  resourceExploration: { title: '⛏️ 资源勘探', desc: '寻找矿源', labor: 18, exec(){state.tools+=15;} },
+  seasonalMigration: { title: '🌞 季节迁移', desc: '建立冬夏营地', labor: 20, exec(){state.morale+=15;} },
+
+  // 防御与扩张类
+  campDefense: { title: '🛡️ 营地防御', desc: '建造围栏', labor: 15, exec(){state.morale+=10;} },
+  weaponMaking: { title: '🏹 武器制作', desc: '制作矛和投掷棒', labor: 12, exec(){state.tools+=10; state.morale+=5;} },
+  areaScouting: { title: '🗺️ 侦察周边', desc: '绘制地图', labor: 10, exec(){state.tech+=1;} },
+  tribeExpansion: { title: '🏞️ 部落扩张', desc: '吸纳小群体', labor: 25, exec(){state.population+=10; state.morale-=5;} },
+
+  // 文化信仰类
+  natureWorship: { title: '🌳 自然崇拜', desc: '建立祭祀地点', labor: 15, exec(){state.belief='自然崇拜';} },
+  ancestorWorship: { title: '🗿 祖先崇拜', desc: '建立祭坛', labor: 12, exec(){state.culture+=2;} },
+  rockArt: { title: '🎨 岩画艺术', desc: '绘制壁画', labor: 8, exec(){state.culture+=1;} },
+  mythologyCreation: { title: '📖 神话传说', desc: '创造起源故事', labor: 10, exec(){state.morale+=5;} }
+};
+
+// 更新面板显示
+function updatePanels() {
+  state.availableLabor = Math.floor(state.population * 0.8);
+  document.getElementById("statusPanel").innerHTML = `人口: ${state.population}/100 | 食物: ${state.food}/200 | 工具: ${state.tools}/100<br>技术: ${state.tech}/10 | 文化: ${state.culture}/10 | 士气: ${state.morale}/100`;
+  document.getElementById("situationPanel").innerHTML = `季度: ${state.season} | 位置: ${state.location}<br>社会形态: ${state.form} | 组织: ${state.org}<br>可用劳动力: ${state.availableLabor}`;
+}
+
+// 显示选项
+function showOptions() {
+  document.getElementById("optionsPanel").innerHTML = Object.entries(actions).map(([k,v])=>`<label><input type="checkbox" data-labor="${v.labor}" value="${k}">${v.title}(${v.labor}) - ${v.desc}</label>`).join('');
+}
+
+// 劳动力选择实时更新
+optionsPanel.onchange = ()=>{
+  let selectedLabor = [...document.querySelectorAll('input:checked')].reduce((s,el)=>s+parseInt(el.getAttribute('data-labor')),0);
+  laborSummary.innerText = `已选择劳动力: ${selectedLabor}`;
+};
+
+// 提交选择并处理季度推进
+submitBtn.onclick = ()=>{
+  let selectedLabor=[...document.querySelectorAll('input:checked')].reduce((s,el)=>s+parseInt(el.getAttribute('data-labor')),0);
+  if(selectedLabor>state.availableLabor)return alert('劳动力不足');
+  [...document.querySelectorAll('input:checked')].forEach(el=>actions[el.value].exec());
+  handleEvents();
+  endTurn();
+};
+
+// 季度结束处理（饥荒机制）
+function endTurn() {
+  state.food -= 10; state.water -= 5;
+  if(state.food <= 0){
+    state.food = 0;
+    if(state.starving){state.population-=8; state.morale-=20; appendChat('🥀 饥荒持续，人口减少，士气下降。');}
+    else{appendChat('⚠️ 食物耗尽，出现饥荒！');}
+    state.starving = true;
+  }else{state.starving=false;}
+  state.season++;
+  updatePanels(); showOptions();
+  laborSummary.innerText = '已选择劳动力: 0';
+}
+
+// 随机事件机制
+function handleEvents(){
+  if(Math.random()<0.3){
+    const eventMsgs=['🌊 洪水袭击，食物减少！','🤒 疾病流行，人口减少！','🔥 发生纷争，士气下降！'];
+    let event=eventMsgs[Math.floor(Math.random()*eventMsgs.length)];
+    if(event.includes('食物')) state.food-=15;
+    if(event.includes('人口')) state.population-=5;
+    if(event.includes('士气')) state.morale-=10;
+    appendChat(event);
+  }
+}
+
+// 添加聊天信息
+function appendChat(msg) {chat.innerHTML += `<div>${msg}</div>`;}
+
+// 初始化
+updatePanels(); showOptions();
+</script>
+</body>
+</html>
