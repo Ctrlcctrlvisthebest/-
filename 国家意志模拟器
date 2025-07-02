@@ -4,77 +4,389 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🌏 国家意志模拟器</title>
-  
   <style>
     /* 页面整体样式 */
-    body {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    }
+    
+    body {
       background: linear-gradient(135deg, #0d1b2a, #1b263b);
       color: #e0e1dd;
-      padding: 10px;
-      margin: 0;
-    }
-    .container {
-      background: rgba(23, 32, 45, 0.95);
-      border-radius: 10px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 15px;
-      max-width: 420px;
-      margin: 0 auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
+    
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: rgba(23, 32, 45, 0.95);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      border: 1px solid #415a77;
+    }
+    
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #e0e1dd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    /* 面板样式 */
     .panel {
       background: rgba(31, 48, 68, 0.8);
-      border-radius: 8px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      padding: 15px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      border: 1px solid #415a77;
+    }
+    
+    .panel-title {
+      font-weight: bold;
+      color: #a9b6c2;
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    /* 状态面板样式 */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .stat-item {
+      background: rgba(26, 40, 55, 0.6);
       padding: 8px;
-      font-size: 0.85rem;
-    }
-
-    .options label {
-      display: block;
-      background: rgba(31, 48, 68, 0.8);
       border-radius: 8px;
-      margin-bottom: 6px;
-      padding: 6px;
-      font-size: 0.8rem;
+      border-left: 3px solid #778da9;
     }
-      background: rgba(31, 48, 68, 0.8);
+    
+    .stat-value {
+      font-weight: bold;
+      color: #e0e1dd;
+      margin-top: 3px;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background: #1b263b;
+      border-radius: 4px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4cc9f0, #4895ef);
+      border-radius: 4px;
+    }
+    
+    /* 选项区域样式 */
+    .options {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .option-item {
+      background: rgba(31, 48, 68, 0.7);
       border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 15px;
+      border: 1px solid #415a77;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .option-item:hover {
+      background: rgba(41, 58, 78, 0.9);
+      transform: translateY(-2px);
+      border-color: #4cc9f0;
+    }
+    
+    /* 选中状态的高亮样式 */
+    .option-item.selected {
+      background: rgba(41, 58, 78, 0.95);
+      border: 2px solid #4cc9f0;
+      box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+    }
+    
+    .option-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 8px;
-      padding: 8px;
-      font-size: 0.85rem;
     }
-    button {
+    
+    .option-title {
+      font-weight: bold;
+      color: #e0e1dd;
+      font-size: 1.05rem;
+    }
+    
+    .option-labor {
       background: #415a77;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      min-width: 80px;
+      text-align: center;
+    }
+    
+    .option-desc {
+      font-size: 0.9rem;
+      color: #a9b6c2;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .option-cost {
+      font-size: 0.85rem;
+      color: #ff9e80;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px dashed #415a77;
+    }
+    
+    /* 按钮样式 */
+    button {
+      background: linear-gradient(to right, #415a77, #778da9);
       color: white;
       width: 100%;
       border: none;
-      border-radius: 6px;
-      padding: 8px 12px;
+      border-radius: 8px;
+      padding: 12px;
       cursor: pointer;
-      margin-top: 6px;
+      margin-top: 10px;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+      font-size: 1rem;
     }
-    button:hover { background: #778da9; }
-    .labor-summary { text-align: center; font-size: 0.85rem; color: #a9b6c2; }
+    
+    button:hover {
+      background: linear-gradient(to right, #4cc9f0, #4895ef);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    button:disabled {
+      background: #415a77;
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* 劳动力摘要 */
+    .labor-summary {
+      text-align: center;
+      font-size: 1rem;
+      background: rgba(31, 48, 68, 0.7);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 1px solid #415a77;
+    }
+    
+    .labor-warning {
+      color: #e63946;
+      font-weight: bold;
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    /* 聊天区域 */
+    #chat {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+      margin-top: 15px;
+      background: rgba(26, 40, 55, 0.6);
+      border-radius: 8px;
+    }
+    
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(31, 48, 68, 0.5);
+      border-left: 3px solid #415a77;
+      line-height: 1.5;
+    }
+    
+    .chat-message.event {
+      border-left-color: #e63946;
+      background: rgba(230, 57, 70, 0.15);
+    }
+    
+    .chat-message.ai {
+      border-left-color: #90e0ef;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 500px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .options {
+        max-height: 250px;
+      }
+      
+      .option-item {
+        padding: 12px;
+      }
+      
+      .option-title {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <h2>🌏 国家意志模拟器</h2>
-  <div class="panel" id="statusPanel"></div>
-  <div class="panel" id="situationPanel"></div>
-  <div class="panel options" id="optionsPanel"></div>
-  <div class="labor-summary" id="laborSummary">已选择劳动力: 0</div>
-  <button id="submitBtn">✅ 执行勾选选项</button>
+  
+  <!-- 状态面板 -->
+  <div class="panel" id="statusPanel">
+    <div class="panel-title">📊 社会状态</div>
+    <div class="status-grid">
+      <div class="stat-item">
+        <div>人口</div>
+        <div class="stat-value" id="populationValue">60</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 60%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>食物</div>
+        <div class="stat-value" id="foodValue">70</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 35%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>工具</div>
+        <div class="stat-value" id="toolsValue">20</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 20%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>技术</div>
+        <div class="stat-value" id="techValue">3</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 30%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>文化</div>
+        <div class="stat-value" id="cultureValue">2</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 20%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>士气</div>
+        <div class="stat-value" id="moraleValue">85</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 85%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 局势面板 -->
+  <div class="panel" id="situationPanel">
+    <div class="panel-title">📍 当前局势</div>
+    <div class="stat-item">
+      <div>季度</div>
+      <div class="stat-value" id="seasonValue">1</div>
+    </div>
+    <div class="stat-item">
+      <div>位置</div>
+      <div class="stat-value" id="locationValue">森林边缘</div>
+    </div>
+    <div class="stat-item">
+      <div>社会形态</div>
+      <div class="stat-value" id="formValue">原始部落</div>
+    </div>
+    <div class="stat-item">
+      <div>组织</div>
+      <div class="stat-value" id="orgValue">部落议会</div>
+    </div>
+    <div class="stat-item">
+      <div>可用劳动力</div>
+      <div class="stat-value" id="laborValue">48</div>
+    </div>
+  </div>
+  
+  <!-- 选项面板 -->
+  <div class="panel">
+    <div class="panel-title">⚙️ 发展选项</div>
+    <div class="options" id="optionsPanel"></div>
+    
+    <div class="labor-summary" id="laborSummary">
+      已选择: <span id="selectedCount">0</span> 项 | 
+      消耗: <span id="totalCost">0</span> 劳动力
+    </div>
+    
+    <button id="submitBtn">✅ 执行选择</button>
+  </div>
+  
+  <!-- 聊天/事件面板 -->
   <div class="panel" id="chat"></div>
 </div>
 
 <script>
-// 状态数据定义
+// 游戏状态对象 - 存储所有游戏数据
 const state = {
-  population: 60, tools: 20, food: 70, water: 80, morale: 85,
-  tech: 3, culture: 2, belief: '图腾祭祀', economy: 1,
-  org: '部落议会', form: '原始部落', season: 1, location: '森林边缘', starving: false
+  population: 60, 
+  tools: 20, 
+  food: 70, 
+  water: 80, 
+  morale: 85,
+  tech: 3, 
+  culture: 2, 
+  belief: '图腾祭祀', 
+  economy: 1,
+  org: '部落议会', 
+  form: '原始部落', 
+  season: 1, 
+  location: '森林边缘', 
+  starving: false,
+  availableLabor: 48
 };
 
 // 行动选项定义
@@ -112,64 +424,337 @@ const actions = {
   mythologyCreation: { title: '📖 神话传说', desc: '创造起源故事', labor: 10, exec(){state.morale+=5;} }
 };
 
-// 更新面板显示
+// 初始化游戏
+function initGame() {
+  updatePanels();
+  showOptions();
+  appendChat("🌱 游戏开始：你是一个原始部落的集体意志");
+  appendChat("部落位于森林边缘，拥有60人口和基本的生存技能", "ai");
+}
+
+// 更新所有面板显示
 function updatePanels() {
+  // 计算可用劳动力
   state.availableLabor = Math.floor(state.population * 0.8);
-  document.getElementById("statusPanel").innerHTML = `人口: ${state.population}/100 | 食物: ${state.food}/200 | 工具: ${state.tools}/100<br>技术: ${state.tech}/10 | 文化: ${state.culture}/10 | 士气: ${state.morale}/100`;
-  document.getElementById("situationPanel").innerHTML = `季度: ${state.season} | 位置: ${state.location}<br>社会形态: ${state.form} | 组织: ${state.org}<br>可用劳动力: ${state.availableLabor}`;
+  
+  // 更新状态面板
+  document.getElementById("populationValue").textContent = state.population;
+  document.getElementById("foodValue").textContent = state.food;
+  document.getElementById("toolsValue").textContent = state.tools;
+  document.getElementById("techValue").textContent = state.tech;
+  document.getElementById("cultureValue").textContent = state.culture;
+  document.getElementById("moraleValue").textContent = state.morale;
+  
+  // 更新进度条
+  document.querySelectorAll(".progress-fill")[0].style.width = `${state.population}%`;
+  document.querySelectorAll(".progress-fill")[1].style.width = `${state.food/2}%`;
+  document.querySelectorAll(".progress-fill")[2].style.width = `${state.tools}%`;
+  document.querySelectorAll(".progress-fill")[3].style.width = `${state.tech*10}%`;
+  document.querySelectorAll(".progress-fill")[4].style.width = `${state.culture*10}%`;
+  document.querySelectorAll(".progress-fill")[5].style.width = `${state.morale}%`;
+  
+  // 更新局势面板
+  document.getElementById("seasonValue").textContent = state.season;
+  document.getElementById("locationValue").textContent = state.location;
+  document.getElementById("formValue").textContent = state.form;
+  document.getElementById("orgValue").textContent = state.org;
+  document.getElementById("laborValue").textContent = state.availableLabor;
 }
 
-// 显示选项
+// 显示可用的行动选项
 function showOptions() {
-  document.getElementById("optionsPanel").innerHTML = Object.entries(actions).map(([k,v])=>`<label><input type="checkbox" data-labor="${v.labor}" value="${k}">${v.title}(${v.labor}) - ${v.desc}</label>`).join('');
+  const optionsPanel = document.getElementById("optionsPanel");
+  optionsPanel.innerHTML = "";
+  
+  // 从所有选项中随机选择5个，确保劳动力总和在可用劳动力的1-2倍之间
+  const availableActions = Object.entries(actions);
+  let selectedActions = [];
+  let totalLabor = 0;
+  let attempts = 0;
+  const maxAttempts = 100;
+  
+  // 尝试找到符合条件的选项组合
+  while (selectedActions.length < 5 && attempts < maxAttempts) {
+    // 重置变量
+    selectedActions = [];
+    totalLabor = 0;
+    
+    // 创建可用选项的副本
+    const tempActions = [...availableActions];
+    
+    // 尝试选择5个选项
+    while (selectedActions.length < 5 && tempActions.length > 0) {
+      const idx = Math.floor(Math.random() * tempActions.length);
+      const action = tempActions.splice(idx, 1)[0];
+      const actionLabor = action[1].labor;
+      
+      // 检查添加后是否超出2倍限制
+      if (totalLabor + actionLabor <= state.availableLabor * 2) {
+        selectedActions.push(action);
+        totalLabor += actionLabor;
+      }
+    }
+    
+    // 检查是否满足大于可用劳动力的条件
+    if (totalLabor <= state.availableLabor) {
+      attempts++;
+      continue;
+    }
+    
+    // 如果满足条件则跳出循环
+    if (totalLabor > state.availableLabor && totalLabor <= state.availableLabor * 2) {
+      break;
+    }
+    
+    attempts++;
+  }
+  
+  // 如果找不到符合条件的组合，则使用默认随机选择
+  if (attempts >= maxAttempts) {
+    selectedActions = [];
+    totalLabor = 0;
+    const tempActions = [...availableActions];
+    
+    while (selectedActions.length < 5 && tempActions.length > 0) {
+      const idx = Math.floor(Math.random() * tempActions.length);
+      selectedActions.push(tempActions.splice(idx, 1)[0]);
+    }
+  }
+  
+  // 创建选项HTML
+  selectedActions.forEach(([key, action]) => {
+    const optionElement = document.createElement("div");
+    optionElement.className = "option-item";
+    optionElement.dataset.key = key;
+    optionElement.dataset.labor = action.labor;
+    optionElement.innerHTML = `
+      <div class="option-header">
+        <div class="option-title">${action.title}</div>
+        <div class="option-labor">${action.labor} 劳动力</div>
+      </div>
+      <div class="option-desc">${action.desc}</div>
+      <div class="option-cost">
+        <span>效果: ${getEffectText(action.title)}</span>
+        <span>风险: ${getRiskText(action.title)}</span>
+      </div>
+    `;
+    
+    // 添加点击事件
+    optionElement.addEventListener("click", function() {
+      this.classList.toggle("selected");
+      updateLaborSummary();
+    });
+    
+    optionsPanel.appendChild(optionElement);
+  });
+  
+  // 更新劳动力摘要
+  updateLaborSummary();
 }
 
-// 劳动力选择实时更新
-optionsPanel.onchange = ()=>{
-  let selectedLabor = [...document.querySelectorAll('input:checked')].reduce((s,el)=>s+parseInt(el.getAttribute('data-labor')),0);
-  laborSummary.innerText = `已选择劳动力: ${selectedLabor}`;
-};
-
-// 提交选择并处理季度推进
-submitBtn.onclick = ()=>{
-  let selectedLabor=[...document.querySelectorAll('input:checked')].reduce((s,el)=>s+parseInt(el.getAttribute('data-labor')),0);
-  if(selectedLabor>state.availableLabor)return alert('劳动力不足');
-  [...document.querySelectorAll('input:checked')].forEach(el=>actions[el.value].exec());
-  handleEvents();
-  endTurn();
-};
-
-// 季度结束处理（饥荒机制）
-function endTurn() {
-  state.food -= 10; state.water -= 5;
-  if(state.food <= 0){
-    state.food = 0;
-    if(state.starving){state.population-=8; state.morale-=20; appendChat('🥀 饥荒持续，人口减少，士气下降。');}
-    else{appendChat('⚠️ 食物耗尽，出现饥荒！');}
-    state.starving = true;
-  }else{state.starving=false;}
-  state.season++;
-  updatePanels(); showOptions();
-  laborSummary.innerText = '已选择劳动力: 0';
+// 获取选项效果文本
+function getEffectText(title) {
+  if (title.includes('工具')) return '↑工具数量';
+  if (title.includes('火')) return '↑食物储备, ↑士气';
+  if (title.includes('编织')) return '↑食物储备';
+  if (title.includes('农业')) return '↑技术, ↑食物';
+  if (title.includes('捕鱼')) return '↑食物储备';
+  if (title.includes('分工')) return '↑技术水平';
+  if (title.includes('会议')) return '↑文化水平';
+  if (title.includes('尊卑')) return '↑文化, ↓士气';
+  if (title.includes('婚姻')) return '↑人口';
+  if (title.includes('仪式')) return '↑士气, ↑文化';
+  if (title.includes('储存')) return '↑食物储备';
+  if (title.includes('水源')) return '↑士气';
+  if (title.includes('勘探')) return '↑工具数量';
+  if (title.includes('迁移')) return '↑士气';
+  if (title.includes('防御')) return '↑士气';
+  if (title.includes('武器')) return '↑工具, ↑士气';
+  if (title.includes('侦察')) return '↑技术水平';
+  if (title.includes('扩张')) return '↑人口, ↓士气';
+  if (title.includes('自然崇拜')) return '↑信仰体系';
+  if (title.includes('祖先崇拜')) return '↑文化水平';
+  if (title.includes('岩画')) return '↑文化水平';
+  return '↑士气';
 }
 
-// 随机事件机制
-function handleEvents(){
-  if(Math.random()<0.3){
-    const eventMsgs=['🌊 洪水袭击，食物减少！','🤒 疾病流行，人口减少！','🔥 发生纷争，士气下降！'];
-    let event=eventMsgs[Math.floor(Math.random()*eventMsgs.length)];
-    if(event.includes('食物')) state.food-=15;
-    if(event.includes('人口')) state.population-=5;
-    if(event.includes('士气')) state.morale-=10;
-    appendChat(event);
+// 获取选项风险文本
+function getRiskText(title) {
+  if (title.includes('扩张') || title.includes('尊卑')) return '可能引发冲突';
+  if (title.includes('农业') || title.includes('编织')) return '可能失败';
+  return '未知';
+}
+
+// 更新劳动力摘要
+function updateLaborSummary() {
+  const selectedOptions = document.querySelectorAll(".option-item.selected");
+  const selectedCount = selectedOptions.length;
+  
+  // 计算总劳动力消耗
+  let totalLabor = 0;
+  selectedOptions.forEach(option => {
+    totalLabor += parseInt(option.dataset.labor);
+  });
+  
+  // 更新显示
+  document.getElementById("selectedCount").textContent = selectedCount;
+  document.getElementById("totalCost").textContent = totalLabor;
+  
+  // 检查是否超过可用劳动力
+  const laborSummary = document.getElementById("laborSummary");
+  if (totalLabor > state.availableLabor) {
+    laborSummary.classList.add("labor-warning");
+  } else {
+    laborSummary.classList.remove("labor-warning");
   }
 }
 
 // 添加聊天信息
-function appendChat(msg) {chat.innerHTML += `<div>${msg}</div>`;}
+function appendChat(message, type = "normal") {
+  const chatPanel = document.getElementById("chat");
+  const messageElement = document.createElement("div");
+  messageElement.className = `chat-message ${type === "event" ? "event" : type === "ai" ? "ai" : ""}`;
+  messageElement.textContent = message;
+  chatPanel.appendChild(messageElement);
+  
+  // 滚动到底部
+  chatPanel.scrollTop = chatPanel.scrollHeight;
+}
 
-// 初始化
-updatePanels(); showOptions();
+// 季度结束处理
+function endTurn() {
+  // 消耗基础资源
+  state.food -= 10;
+  state.water -= 5;
+  
+  // 检查饥荒
+  if (state.food <= 0) {
+    state.food = 0;
+    if (state.starving) {
+      state.population -= 8;
+      state.morale -= 20;
+      appendChat("🥀 饥荒持续，人口减少，士气下降。", "event");
+    } else {
+      state.starving = true;
+      appendChat("⚠️ 食物耗尽，出现饥荒！", "event");
+    }
+  } else {
+    state.starving = false;
+  }
+  
+  // 季度推进
+  state.season++;
+  
+  // 随机事件
+  if (Math.random() < 0.3) {
+    handleEvents();
+  }
+  
+  // 更新界面
+  updatePanels();
+  showOptions();
+  
+  // 重置劳动力摘要
+  document.getElementById("selectedCount").textContent = "0";
+  document.getElementById("totalCost").textContent = "0";
+  document.getElementById("laborSummary").classList.remove("labor-warning");
+}
+
+// 处理随机事件
+function handleEvents() {
+  const events = [
+    {
+      msg: "🌊 洪水袭击营地！食物减少15点",
+      effect: () => { 
+        state.food -= 15;
+        state.morale -= 10;
+      }
+    },
+    {
+      msg: "🤒 疾病在部落中流行！人口减少5人",
+      effect: () => { 
+        state.population -= 5;
+        state.morale -= 15;
+      }
+    },
+    {
+      msg: "🔥 部落内部发生纷争！士气下降20点",
+      effect: () => { 
+        state.morale -= 20;
+      }
+    },
+    {
+      msg: "🎉 部落庆祝丰收！士气上升15点，食物增加10点",
+      effect: () => { 
+        state.morale += 15;
+        state.food += 10;
+      }
+    },
+    {
+      msg: "🪨 发现新的燧石矿脉！工具增加10点，技术提升1点",
+      effect: () => { 
+        state.tools += 10;
+        state.tech += 1;
+      }
+    },
+    {
+      msg: "🐺 狼群袭击营地！食物减少10点，士气下降10点",
+      effect: () => { 
+        state.food -= 10;
+        state.morale -= 10;
+      }
+    },
+    {
+      msg: "🌧️ 持续干旱！水源减少20点",
+      effect: () => { 
+        state.water -= 20;
+      }
+    }
+  ];
+  
+  const event = events[Math.floor(Math.random() * events.length)];
+  event.effect();
+  appendChat(event.msg, "event");
+}
+
+// 提交选择并处理季度推进
+document.getElementById("submitBtn").addEventListener("click", function() {
+  const selectedOptions = document.querySelectorAll(".option-item.selected");
+  
+  // 检查是否有选中选项
+  if (selectedOptions.length === 0) {
+    appendChat("请至少选择一个发展选项", "event");
+    return;
+  }
+  
+  // 计算总劳动力消耗
+  let totalLabor = 0;
+  selectedOptions.forEach(option => {
+    totalLabor += parseInt(option.dataset.labor);
+  });
+  
+  // 检查劳动力是否足够
+  if (totalLabor > state.availableLabor) {
+    appendChat(`错误：劳动力不足！所需: ${totalLabor}, 可用: ${state.availableLabor}`, "event");
+    return;
+  }
+  
+  // 执行选中的行动
+  selectedOptions.forEach(option => {
+    const actionKey = option.dataset.key;
+    actions[actionKey].exec();
+    appendChat(`执行了: ${actions[actionKey].title}`);
+  });
+  
+  // 推进季度
+  endTurn();
+  
+  // 添加AI反馈
+  appendChat("作为集体意志，我引导部落向更高级的社会形态发展...", "ai");
+});
+
+// 初始化游戏
+window.onload = initGame;
 </script>
 </body>
 </html>
