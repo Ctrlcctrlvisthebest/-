@@ -44,6 +44,7 @@ boolean rightPressed;
 boolean jumpPressed;
 // When true, the player should be reset to the spawn point.
 boolean resetmage;
+boolean resetGame;
 // Standard size for one map tile.
 final int TILE_SIZE = 50;
 // Number of rows and columns in the current map file.
@@ -130,6 +131,7 @@ void draw() {
         // Draw the gameplay sky.
         background(100, 200, 255);
         // Draw every solid tile in the world.
+        resetGame();
         world.drawTiles();
         // Get only the tiles near the player for efficient collision.
         nearby = world.getNearByTiles(mage);
@@ -201,6 +203,7 @@ void drawScore(){
   text("Score:"+coinScore,20,30);
   text("Rank:"+getRank(),20,60);
   text("Difficulty:"+getDifficultyName(),20,90);
+  mage.drawCooldownTime();
 }
 
 // Convert the current coin total into a letter rank.
@@ -308,6 +311,10 @@ void updateProjectiles() {
     }
     // Draw the projectile after its position is updated.
     p.display();
+    // Sprinting lets the player ignore magma projectiles completely.
+    if (mage.isSprinting()) {
+      continue;
+    }
     // If the projectile hits the player, remove it and apply damage.
     if (p.collidesWith(mage)) {
       projectiles.remove(i);
@@ -425,7 +432,7 @@ void drawIntroScreen() {
   text("SPRITR QUEST",500,300);
   fill(125);
   textSize(30);
-  text("Arrow to Move, X shoot water, space restart",430,380);
+  text("Arrow to Move, X shoot water, space restart, z sprint, r reselect",430,380);
   text("Press 1 for Easy, 2 for Normal, 3 for Hard",420,430);
   text("Selected Difficulty: " + getDifficultyName(),480,480);
   fill(255);
@@ -433,8 +440,11 @@ void drawIntroScreen() {
   text("Press [SPACEBAR] to play",500,560);
   // Reuse the reset key to leave the intro screen.
   if(resetmage){
+    map = 1;
+    coinScore = 0;
     timerStart = millis();
     state = GameState.LOADING;
+    loadLevel(map);
     resetmage = false;
   }
 }
@@ -547,6 +557,7 @@ void resetMage(){
   mage.y=400;
   mage.xVelocity=0;
   mage.yVelocity=0;
+  mage.resetSprintState();
   projectiles.clear();
   waterProjectiles.clear();
   switch(selectedDifficulty){
@@ -574,7 +585,12 @@ ArrayList<Enemy> createEnemiesForMap(){
   }
   return newEnemies;
 }
-
+void resetGame(){
+  if(resetGame){
+    state = GameState.START;
+    resetGame=false;
+  }
+}
 // Reset all enemies to their spawn positions and full state.
 void resetEnemies(){
   float spawnX = world.getEnemySpawnX();

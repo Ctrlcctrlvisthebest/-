@@ -34,7 +34,7 @@ class Enemy extends Character {
     direction = 1;
     patrolSpeed = 3;
     shootCooldownFrames = 100;
-    turnAroundSpeed=1000/getEnemyCount();
+    turnAroundSpeed=3000/getEnemyCount()/getEnemyCount();
     waitTurnAround = 0;
     waitingToTurn = false;
     lastShotFrame = -shootCooldownFrames;
@@ -113,7 +113,7 @@ class Enemy extends Character {
       return;
     }
     // Fire toward whichever side the player is on.
-    int shotDirection = target.x >= x ? 1 : -1;
+    int shotDirection = enemyfacingRight ? 1 : -1;
     // Spawn the magma shot just outside the enemy sprite.
     float spawnX = shotDirection > 0 ? x + spriteWidth : x - Projectile.PROJECTILE_SIZE;
     float spawnY = y + spriteHeight * 0.35;

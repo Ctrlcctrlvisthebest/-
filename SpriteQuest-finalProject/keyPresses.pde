@@ -9,7 +9,12 @@ void keyPressed() {
   // Remember that the up arrow is being held for jumping.
   }else if(keyCode==UP){
     jumpPressed=true;
+  // Z triggers a forward sprint.
+  }else if(key == 'z' || key == 'Z'){
+    mage.triggerSprint();
   // Number keys select difficulty on menu screens.
+  }else if(key=='r'||key=='R'){
+    resetGame=true;
   }else if(key == '1' && state != GameState.PLAYING && state != GameState.LOADING){
     selectedDifficulty = Difficulty.EASY;
   }else if(key == '2' && state != GameState.PLAYING && state != GameState.LOADING){
